@@ -41,7 +41,7 @@ export class IctBroadcastApi implements ICredentialType {
 					value: 'basic',
 				},
 			],
-			default: 'apiToken',
+			default: 'basic',
 		},
 		{
 			displayName: 'API Key',
@@ -93,9 +93,9 @@ export class IctBroadcastApi implements ICredentialType {
 	];
 
 	/**
-	 * The API key rides in an Authorization header, but the same servers also
-	 * accept plain Basic, so the credential offers both and picks one here rather
-	 * than in every node.
+	 * The username and password go in the POST body, not an Authorization header.
+	 * ICTBroadcast answers HTTP Basic with 401 on every endpoint, so sending a
+	 * Basic header instead of body fields breaks every call.
 	 */
 	async authenticate(
 		credentials: ICredentialDataDecryptedObject,
@@ -104,18 +104,30 @@ export class IctBroadcastApi implements ICredentialType {
 		requestOptions.skipSslCertificateValidation = credentials.ignoreSslIssues as boolean;
 		requestOptions.headers = { ...requestOptions.headers };
 
-		if (credentials.authentication === 'basic') {
-			const pair = `${credentials.username as string}:${credentials.password as string}`;
-			requestOptions.headers.Authorization = `Basic ${Buffer.from(pair).toString('base64')}`;
-		} else {
+		if (credentials.authentication === 'apiToken') {
 			requestOptions.headers.Authorization = `Bearer ${credentials.apiToken as string}`;
+			return requestOptions;
+		}
+
+		const username = credentials.username as string;
+		const password = credentials.password as string;
+
+		if (requestOptions.body instanceof FormData) {
+			requestOptions.body.set('username', username);
+			requestOptions.body.set('password', password);
+		} else if (requestOptions.body instanceof URLSearchParams) {
+			requestOptions.body.set('username', username);
+			requestOptions.body.set('password', password);
+		} else {
+			// The credential test sends no body at all.
+			requestOptions.body = new URLSearchParams({ username, password });
 		}
 
 		return requestOptions;
 	}
 
 	// User_Role_List takes no arguments and every account can call it, which makes
-	// it the cheapest way to prove the base URL and the key are both good.
+	// it the cheapest way to prove the base URL and the login are both good.
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{ $credentials.baseUrl.replace(/\\/+$/, "") }}',
