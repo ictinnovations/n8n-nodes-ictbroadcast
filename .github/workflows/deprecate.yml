@@ -1,0 +1,24 @@
+name: Deprecate on npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Deprecation message shown on install'
+        required: true
+        default: 'Use n8n-nodes-ictcontact instead. ICTBroadcast answers the same REST API, so that node covers it: set the Base URL to your ICTBroadcast server.'
+
+jobs:
+  deprecate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      # The publish token is the only npm credential with write access to this
+      # package, and it lives here rather than on anyone's laptop.
+      - run: npm deprecate n8n-nodes-ictbroadcast "${{ inputs.message }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
