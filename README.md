@@ -1,5 +1,12 @@
 # n8n-nodes-ictbroadcast
 
+> **Deprecated. Use [`n8n-nodes-ictcontact`](https://www.npmjs.com/package/n8n-nodes-ictcontact) instead.**
+>
+> ICTBroadcast and ICTContact answer the same `/rest/<Method_Name>` API with the same method names, so this
+> package was a duplicate of that one, and n8n verifies a single node per vendor. Install
+> `n8n-nodes-ictcontact`, point the Base URL at your ICTBroadcast server and every operation here behaves
+> the same. This package stays on npm for anyone already running it, but gets no further releases.
+
 An n8n community node for [ICTBroadcast](https://ictbroadcast.com), the multi-channel autodialer from [ICT Innovations](https://ictinnovations.com). Start and stop campaigns, pull results, load contacts and manage users straight from a workflow.
 
 ## Install
